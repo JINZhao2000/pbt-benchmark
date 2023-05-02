@@ -20,7 +20,7 @@ public class Application {
     public static int NUM = 200;
 
     public static void main(String[] args) throws Exception {
-        final Driver driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "123456"));
+        final Driver driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "12345678"));
         List<Vertex> vertices = ImportUtil.getVertex(VERTEX + NUM + POSTFIX);
         List<Edge> edges = ImportUtil.getEdge(EDGE + NUM + POSTFIX);
         try (Session session = driver.session()){
