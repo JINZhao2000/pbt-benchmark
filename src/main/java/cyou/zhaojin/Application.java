@@ -8,6 +8,7 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -19,8 +20,13 @@ public class Application {
     public static final String POSTFIX = ".json";
     public static int NUM = 50;
 
+    public static final Driver driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "12345678"));
+
     public static void main(String[] args) throws Exception {
-        final Driver driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "12345678"));
+        importGraph(NUM);
+    }
+
+    public static void importGraph(int num) throws IOException {
         List<Vertex> vertices = ImportUtil.getVertex(VERTEX + NUM + POSTFIX);
         List<Edge> edges = ImportUtil.getEdge(EDGE + NUM + POSTFIX);
         try (Session session = driver.session()){
