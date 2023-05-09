@@ -18,9 +18,9 @@ public class Edge {
     private String _id;
     @JsonIgnore
     private String _rev;
-    @JsonIgnore
+    @JsonProperty
     private String from_evt;
-    @JsonIgnore
+    @JsonProperty
     private String to_evt;
     private String type;
 
@@ -34,6 +34,14 @@ public class Edge {
 
     public String get_to() {
         return _to;
+    }
+
+    public String getFrom_evt() {
+        return from_evt;
+    }
+
+    public String getTo_evt() {
+        return to_evt;
     }
 
     @JsonAnySetter
