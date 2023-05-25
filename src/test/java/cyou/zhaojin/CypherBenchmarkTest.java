@@ -95,8 +95,13 @@ public class CypherBenchmarkTest {
     }
 
     public static void main(String[] args) throws Exception {
-        for (int i = 10; i <= 200; i+= 10) {
-            Application.importGraph(i);
+        if (args.length < 1 || (!args[0].equals("rw_register") && !args[0].equals("list_append"))) {
+            System.out.println("Args: \nlist_append\nrw_register");
+            System.exit(0);
+        }
+        int max = 200;
+        for (int i = 10; i <= max; i+= 10) {
+            Application.importGraph(args[0], i);
             final Options opts = new OptionsBuilder()
                     .include(CypherBenchmarkTest.class.getSimpleName())
                     .forks(1)
@@ -108,10 +113,11 @@ public class CypherBenchmarkTest {
                     .verbosity(VerboseMode.SILENT)
                     .build();
             Collection<RunResult> results = new Runner(opts).run();
-            System.out.println("file"+i);
+            System.out.println("file:"+args[0]+" "+i);
             results.forEach(r -> {
-                System.out.println(r.getPrimaryResult().getLabel() + "\t" + r.getPrimaryResult().getLabel());
+                System.out.println(r.getPrimaryResult().getLabel() + "\t" + r.getPrimaryResult().getScore());
             });
+            System.out.println();
         }
     }
 }

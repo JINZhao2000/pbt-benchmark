@@ -23,12 +23,12 @@ public class Application {
     public static final Driver driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "12345678"));
 
     public static void main(String[] args) throws Exception {
-        importGraph(NUM);
+        importGraph(args[0], NUM);
     }
 
-    public static void importGraph(int num) throws IOException {
-        List<Vertex> vertices = ImportUtil.getVertex(VERTEX + NUM + POSTFIX);
-        List<Edge> edges = ImportUtil.getEdge(EDGE + NUM + POSTFIX);
+    public static void importGraph(String type, int num) throws IOException {
+        List<Vertex> vertices = ImportUtil.getVertex(type + "/" + VERTEX + num + POSTFIX);
+        List<Edge> edges = ImportUtil.getEdge(type + "/" + EDGE + num + POSTFIX);
         try (Session session = driver.session()){
             session.run("match (n) detach delete (n)");
             StringBuilder vertex = new StringBuilder("create ");

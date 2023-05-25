@@ -4,7 +4,4 @@
     ```bash
     docker compose start
     ```
-2. Modify the name of file in `cyou.zhaojin.Application` with the name `NUM` from 10 to 200
-3. Run the `Application.class` to import the graph into neo4j
-4. Run the `main` method in `cyou.zhaojin.CypherBenchmarkTest` the test directory
-    We will have 5 dependent benchmarks with their results.
+2. Run the `main` method in `cyou.zhaojin.CypherBenchmarkTest` class directly with an argument `list_append` or `rw_register`  
