@@ -196,7 +196,7 @@ public class CypherBenchmarkTest {
             System.exit(0);
         }
         int max = 200;
-        for (int i = 10; i <= 20; i+= 10) {
+        for (int i = 10; i <= max; i+= 10) {
             Application.importGraph(args[0], i);
             final Options opts = new OptionsBuilder()
                     .include(CypherBenchmarkTest.class.getSimpleName())
