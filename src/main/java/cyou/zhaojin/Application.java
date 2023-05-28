@@ -162,7 +162,7 @@ public class Application {
     }
 
     public static void main(String[] args) throws Exception {
-        String[] nameSet = new String[]{"collection_time", "rate", "collection_time_nemesis", "rate_nemesis", "history_30s"};
+        String[] nameSet = new String[]{"rate", "collection_time_nemesis", "rate_nemesis", "history_30s"};
         for (String t : nameSet) {
             System.out.println(t);
             for (int i = 10; i <= 200; i+=10) {
@@ -174,7 +174,7 @@ public class Application {
 //                        PL2Test() + "\t" +
 //                        PL1Test();
 //                System.out.println(res);
-                System.out.println("expect:\t" + SITest() + "\t" + PSITest() +"\treal:\t" + Q3_SISCCTest() + "\t" + Q4PSISCCTest());
+                System.out.println("expect:\t" + SITest() + "\t" + PSITest());
             }
         }
     }

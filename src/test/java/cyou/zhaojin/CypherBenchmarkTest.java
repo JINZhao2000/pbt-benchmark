@@ -217,9 +217,8 @@ public class CypherBenchmarkTest {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1 || (!args[0].equals("rw_register") && !args[0].equals("list_append"))) {
-            System.out.println("Args: \nlist_append\nrw_register");
-            System.exit(0);
+        if (args.length < 1) {
+            System.out.println("arg for directory name");
         }
         int max = 200;
         for (int i = 10; i <= max; i+= 10) {
