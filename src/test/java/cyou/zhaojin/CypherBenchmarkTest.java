@@ -37,7 +37,7 @@ public class CypherBenchmarkTest {
     public static final String pl2proj = "CALL gds.graph.project.cypher( 'pbt', 'MATCH (n:txn) RETURN id(n) AS id', 'MATCH (n:txn)-[:ww|wr]->(n2:txn) RETURN id(n) AS source, id(n2) AS target')";
     public static final String pl1proj = "CALL gds.graph.project.cypher( 'pbt', 'MATCH (n:txn) RETURN id(n) AS id', 'MATCH (n:txn)-[:ww]->(n2:txn) RETURN id(n) AS source, id(n2) AS target')";
     public static final String sccstream = "CALL gds.alpha.scc.stream('pbt', {}) YIELD nodeId, componentId WITH componentId, COLLECT(nodeId) AS nodes, COUNT(nodeId) AS num WHERE num > 1 RETURN nodes";
-    public static final String rlist = "match (n1:txn)-[r]->(n2:txn) where id(n1) in %s and id(n2) in %s with collect(type(r)) as r return r";
+    public static final String smallcycle = "match (n:txn) where id(n) in %s with collect(n) as nodes call apoc.nodes.cycles(nodes) yield path return path";
 
 //    @Benchmark
     public void SerTest() throws Exception {
@@ -58,10 +58,17 @@ public class CypherBenchmarkTest {
                 while (matcher.find())
                     cycle.add(matcher.group(1));
                 boolean findRW = false;
-                for (int i = 1; i < cycle.size(); i++) {
-                    if (cycle.get(i).equals(rw) && cycle.get(i).equals(rw)) {
-                        findRW = true;
-                        break;
+                for (int i = 1; i <= cycle.size(); i++) {
+                    if (i == cycle.size()) {
+                        if (cycle.get(i - 1).equals(rw) && cycle.get(0).equals(rw)) {
+                            findRW = true;
+                            break;
+                        }
+                    } else {
+                        if (cycle.get(i - 1).equals(rw) && cycle.get(i).equals(rw)) {
+                            findRW = true;
+                            break;
+                        }
                     }
                 }
                 if (!findRW) {
@@ -125,17 +132,30 @@ public class CypherBenchmarkTest {
             Result result = session.run(sccstream);
             while (result.hasNext()) {
                 String list = result.next().get(0).toString();
-                Result innerResult = session.run(String.format(rlist, list, list));
-                List<String> cycle = innerResult.next().get(0).asList(Value::asString);
-                boolean findRW = false;
-                for (int i = 1; i < cycle.size(); i++) {
-                    if (cycle.get(i).equals(rw) && cycle.get(i).equals(rw)) {
-                        findRW = true;
-                        break;
+                Result innerResult = session.run(String.format(smallcycle, list));
+                while (innerResult.hasNext()) {
+                    String res = innerResult.next().get("path").toString();
+                    Matcher matcher = pattern.matcher(res);
+                    List<String> cycle = new ArrayList<>();
+                    while (matcher.find())
+                        cycle.add(matcher.group(1));
+                    boolean findRW = false;
+                    for (int i = 1; i <= cycle.size(); i++) {
+                        if (i == cycle.size()) {
+                            if (cycle.get(i - 1).equals(rw) && cycle.get(0).equals(rw)) {
+                                findRW = true;
+                                break;
+                            }
+                        } else {
+                            if (cycle.get(i - 1).equals(rw) && cycle.get(i).equals(rw)) {
+                                findRW = true;
+                                break;
+                            }
+                        }
                     }
-                }
-                if (!findRW) {
-                    break;
+                    if (!findRW) {
+                        return;
+                    }
                 }
             }
         }
@@ -147,10 +167,16 @@ public class CypherBenchmarkTest {
             Result result = session.run(sccstream);
             while (result.hasNext()) {
                 String list = result.next().get(0).toString();
-                Result innerResult = session.run(String.format(rlist, list, list));
-                List<String> cycle = innerResult.next().get(0).asList(Value::asString);
-                if (cycle.stream().filter(rw::equals).count() < 2)
-                    break;
+                Result innerResult = session.run(String.format(smallcycle, list));
+                while (innerResult.hasNext()) {
+                    String res = innerResult.next().get("path").toString();
+                    Matcher matcher = pattern.matcher(res);
+                    List<String> cycle = new ArrayList<>();
+                    while (matcher.find())
+                        cycle.add(matcher.group(1));
+                    if (cycle.stream().filter(rw::equals).count() < 2)
+                        return;
+                }
             }
         }
     }
