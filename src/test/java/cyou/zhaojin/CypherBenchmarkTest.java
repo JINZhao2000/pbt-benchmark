@@ -26,11 +26,12 @@ import java.util.regex.Pattern;
 @State(Scope.Thread)
 public class CypherBenchmarkTest {
     public final Driver driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "neo4j"));
-    public final static String serializable = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes) yield path return path";
+    public final static String serializable = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes) yield path return path limit 1";
+    public final static String si = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes) yield path return path";
     public final static Pattern pattern = Pattern.compile(":(\\w{2})");
     public final static String rw = "rw";
-    public static final String pl2 = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes, {relTypes: ['ww','wr']}) yield path return path";
-    public static final String pl1 = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes, {relTypes: ['ww']}) yield path return path";
+    public static final String pl2 = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes, {relTypes: ['ww','wr']}) yield path return path limit 1";
+    public static final String pl1 = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes, {relTypes: ['ww']}) yield path return path limit 1";
     public static final String dropproj = "call gds.graph.drop('pbt')";
     public static final String scc = "call gds.alpha.scc.write('pbt', {}) yield maxSetSize as s return s";
     public static final String serproj = "CALL gds.graph.project.cypher( 'pbt', 'MATCH (n:txn) RETURN id(n) AS id', 'MATCH (n:txn)-->(n2:txn) RETURN id(n) AS source, id(n2) AS target')";
@@ -49,7 +50,7 @@ public class CypherBenchmarkTest {
 //    @Benchmark
     public void SITest() throws Exception{
         try(Session session = driver.session()) {
-            Result result = session.run(serializable);
+            Result result = session.run(si);
             while (result.hasNext()) {
                 Record next = result.next();
                 String res = next.get("path").toString();
@@ -82,7 +83,7 @@ public class CypherBenchmarkTest {
     public void PSITest() throws Exception{
         // the kernel of neo4j is java
         try(Session session = driver.session()) {
-            Result result = session.run(serializable);
+            Result result = session.run(si);
             while (result.hasNext()) {
                 Record next = result.next();
                 String res = next.get("path").toString();
@@ -126,7 +127,7 @@ public class CypherBenchmarkTest {
     }
 
     @Benchmark
-    @Test
+//    @Test
     public void Q3_SISCCTest() throws Exception {
         try (Session session = driver.session()){
             Result result = session.run(sccstream);
@@ -213,16 +214,14 @@ public class CypherBenchmarkTest {
 
     @Test
     public void importG() throws Exception {
-        Application.importGraph("list_append", 60);
+        Application.importGraph("collection_time", 100);
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1) {
-            System.out.println("arg for directory name");
-        }
+        String dir = "collection_time";
         int max = 200;
         for (int i = 10; i <= max; i+= 10) {
-            Application.importGraph(args[0], i);
+            Application.importGraph(dir, i);
             final Options opts = new OptionsBuilder()
                     .include(CypherBenchmarkTest.class.getSimpleName())
                     .forks(1)
@@ -234,7 +233,7 @@ public class CypherBenchmarkTest {
                     .verbosity(VerboseMode.SILENT)
                     .build();
             Collection<RunResult> results = new Runner(opts).run();
-            System.out.println("file:"+args[0]+" "+i);
+            System.out.println("file:"+dir+" "+i);
             results.forEach(r -> {
                 System.out.println(r.getPrimaryResult().getLabel() + "\t" + r.getPrimaryResult().getScore());
             });
