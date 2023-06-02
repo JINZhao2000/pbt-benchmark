@@ -1,6 +1,5 @@
 package cyou.zhaojin;
 
-import org.junit.Test;
 import org.neo4j.driver.*;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.results.RunResult;
@@ -40,14 +39,14 @@ public class CypherBenchmarkTest {
     public static final String sccstream = "CALL gds.alpha.scc.stream('pbt', {}) YIELD nodeId, componentId WITH componentId, COLLECT(nodeId) AS nodes, COUNT(nodeId) AS num WHERE num > 1 RETURN nodes";
     public static final String smallcycle = "match (n:txn) where id(n) in %s with collect(n) as nodes call apoc.nodes.cycles(nodes) yield path return path";
 
-//    @Benchmark
+    @Benchmark
     public void SerTest() throws Exception {
         try (Session session = driver.session()) {
             Result result = session.run(serializable);
         }
     }
 
-//    @Benchmark
+    @Benchmark
     public void SITest() throws Exception{
         try(Session session = driver.session()) {
             Result result = session.run(si);
@@ -79,7 +78,7 @@ public class CypherBenchmarkTest {
         }
     }
 
-//    @Benchmark
+    @Benchmark
     public void PSITest() throws Exception{
         // the kernel of neo4j is java
         try(Session session = driver.session()) {
@@ -97,14 +96,14 @@ public class CypherBenchmarkTest {
         }
     }
 
-//    @Benchmark
+    @Benchmark
     public void PL2Test() throws Exception {
         try (Session session = driver.session()) {
             Result result = session.run(pl2);
         }
     }
 
-//    @Benchmark
+    @Benchmark
     public void PL1Test() throws Exception {
         try (Session session = driver.session()){
             Result result = session.run(pl1);
@@ -127,7 +126,6 @@ public class CypherBenchmarkTest {
     }
 
     @Benchmark
-//    @Test
     public void Q3_SISCCTest() throws Exception {
         try (Session session = driver.session()){
             Result result = session.run(sccstream);
@@ -212,13 +210,12 @@ public class CypherBenchmarkTest {
         }
     }
 
-    @Test
-    public void importG() throws Exception {
-        Application.importGraph("collection_time", 100);
-    }
-
     public static void main(String[] args) throws Exception {
-        String dir = "collection_time";
+        if (args.length < 1) {
+            System.err.println("the direction name in the resources path is need as first argument");
+            System.exit(1);
+        }
+        String dir = args[0];
         int max = 200;
         for (int i = 10; i <= max; i+= 10) {
             Application.importGraph(dir, i);

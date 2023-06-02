@@ -4,4 +4,6 @@
     ```bash
     docker compose start
     ```
-2. Run the `main` method in `cyou.zhaojin.CypherBenchmarkTest` class directly with an argument `list_append` or `rw_register`  
+2. Select the benchmark you want to run in `cyou.zhaojin.CypherBenchmarkTest`, to comment or uncomment the annotation `@Benchmark`
+3. Then run `./mvnw clean compile` to build the project
+4. Run the class `cyou.zhaoin.CypherBenchmarkTest`, it needs an argument as the name of directory

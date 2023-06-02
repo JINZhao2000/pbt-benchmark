@@ -20,12 +20,13 @@ public class Application {
     public static final String POSTFIX = ".json";
 
     public static final Driver driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "12345678"));
-    public final static String serializable = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes) yield path return path";
+    public final static String serializable = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes) yield path return path limit 1";
+    public final static String si = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes) yield path return path";
     public final static Pattern pattern = Pattern.compile(":(\\w{2})");
 
     public final static String rw = "rw";
-    public static final String pl2 = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes, {relTypes: ['ww','wr']}) yield path return path";
-    public static final String pl1 = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes, {relTypes: ['ww']}) yield path return path";
+    public static final String pl2 = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes, {relTypes: ['ww','wr']}) yield path return path limit 1";
+    public static final String pl1 = "match (n:txn) with collect(n) as nodes call apoc.nodes.cycles(nodes, {relTypes: ['ww']}) yield path return limit 1";
 
     public static final String dropproj = "call gds.graph.drop('pbt')";
     public static final String scc = "call gds.alpha.scc.write('pbt', {}) yield maxSetSize as s return s";
@@ -44,7 +45,7 @@ public class Application {
 
     public static boolean SITest() throws Exception{
         try(Session session = driver.session()) {
-            Result result = session.run(serializable);
+            Result result = session.run(si);
             while (result.hasNext()) {
                 Record next = result.next();
                 String res = next.get("path").toString();
@@ -77,7 +78,7 @@ public class Application {
     public static boolean PSITest() throws Exception{
         // the kernel of neo4j is java
         try(Session session = driver.session()) {
-            Result result = session.run(serializable);
+            Result result = session.run(si);
             while (result.hasNext()) {
                 Record next = result.next();
                 String res = next.get("path").toString();
@@ -162,21 +163,6 @@ public class Application {
     }
 
     public static void main(String[] args) throws Exception {
-        String[] nameSet = new String[]{"rate", "collection_time_nemesis", "rate_nemesis", "history_30s"};
-        for (String t : nameSet) {
-            System.out.println(t);
-            for (int i = 10; i <= 200; i+=10) {
-                importGraph(t, i);
-//                String res = t + " " + i + ":\t" +
-//                        SerTest() + "\t" +
-//                        SITest() + "\t" +
-//                        PSITest() + "\t" +
-//                        PL2Test() + "\t" +
-//                        PL1Test();
-//                System.out.println(res);
-                System.out.println("expect:\t" + SITest() + "\t" + PSITest());
-            }
-        }
     }
 
     public static void importGraph(String type, int num) throws IOException {
@@ -195,7 +181,7 @@ public class Application {
             vertex.delete(vertex.length()-1, vertex.length());
             session.run(vertex.toString());
             edges.forEach(e -> {
-                String edge = "match (n1:txn), (n2:txn) where n1.`_id`=\""+e.get_from()+"\" and n2.`_id`=\""+e.get_to()+"\" create (n1)-[:"+e.getType()+"{from: '"+e.getFrom_evt()+"', to: '"+e.getTo_evt()+"'}]->(n2)";
+                String edge = "match (n1:txn), (n2:txn) where n1.`_id`=\""+e.get_from()+"\" and n2.`_id`=\""+e.get_to()+"\" create (n1)-[:"+e.getType()+"]->(n2)";
                 session.run(edge);
             });
             session.run("CALL gds.graph.project.cypher( 'pbt', 'MATCH (n:txn) RETURN id(n) AS id', 'MATCH (n:txn)-->(n2:txn) RETURN id(n) AS source, id(n2) AS target')");
